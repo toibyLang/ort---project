@@ -1,0 +1,30 @@
+services:
+  mongo:
+    image: mongo:7
+    container_name: hadasim-mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  server:
+    image: hadasim-server
+    container_name: hadasim-server
+    ports:
+      - "3500:3500"
+    environment:
+      PORT: 3500
+      DB_CONNECTION: mongodb://mongo:27017/hadasim
+    depends_on:
+      - mongo
+
+  client:
+    image: hadasim-client
+    container_name: hadasim-client
+    ports:
+      - "3000:80"
+    depends_on:
+      - server
+
+volumes:
+  mongo_data:

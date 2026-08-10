@@ -1,6 +1,6 @@
 import axios from "axios";
 
-let baseUrl = "http://localhost:3500/api/members"
+let baseUrl = "/api/members"
 
 export const addMemberToServer = (data) => {
     return axios.post(`${baseUrl}`, data);
