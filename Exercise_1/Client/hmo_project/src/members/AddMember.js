@@ -70,7 +70,7 @@ const AddMember = () => {
             data.vaccinations = data.vaccinations.filter(obj => obj["date"] !== '');
             let member = await addMemberToServer(data)
             alert("הצליח")
-            navigate("/allMembers")
+            navigate("/")
         }
         catch (err) {
             alert(err.response.data.message, data)

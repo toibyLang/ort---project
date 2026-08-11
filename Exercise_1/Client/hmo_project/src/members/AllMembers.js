@@ -52,47 +52,63 @@ const AllMembers = () => {
         getAllMembers()
     }, [])
 
-    function generate(element) {
-        return React.cloneElement(element, {
-            key: 1,
-        });
-    }
+    
 
     return (<div>
         <div >
-            {mmbrArr.map((item) => {
-                return <> <Demo>
-                    <List >
-                        {generate(
-                            <ListItem
-                                secondaryAction={
-                                    <ListItemText
-                                        primary={item.id}
-                                        secondary={`${item.lastName} ${item.firstName}`}
-                                    />}>
+                 
+              {mmbrArr.map((item) => {
+    return (
+        <React.Fragment key={item._id}>
+            <Demo>
+                <List>
+                    <ListItem
+                        secondaryAction={
+                            <ListItemText
+                                primary={item.id}
+                                secondary={`${item.lastName} ${item.firstName}`}
+                            />
+                        }
+                    >
+                        <>
+                            <IconButton
+                                edge="end"
+                                aria-label="delete"
+                                onClick={() => { deleteMember(item) }}
+                            >
+                                <DeleteIcon />
+                            </IconButton>
 
-                                <>
-                                    <IconButton edge="end" aria-label="delete" onClick={() => { deleteMember(item) }}>
-                                        <DeleteIcon />
-                                    </IconButton>
-                                    <Link to={`/getMember/${item._id}`} state={item} style={{}}>
-                                        <IconButton edge="end" aria-label="view" style={{ marginLeft: "1%" }}>
-                                            <PermIdentityIcon />
-                                        </IconButton>
-                                    </Link>
-                                    <Link to={`/editMember/${item._id}`} state={item} style={{}}>
-                                        <IconButton edge="end" aria-label="edit" style={{ marginLeft: "2%" }} >
-                                            <EditIcon />
-                                        </IconButton>
-                                    </Link>
-                                </>
+                            <Link to={`/getMember/${item._id}`} state={item}>
+                                <IconButton
+                                    edge="end"
+                                    aria-label="view"
+                                    style={{ marginLeft: "1%" }}
+                                >
+                                    <PermIdentityIcon />
+                                </IconButton>
+                            </Link>
 
-                            </ListItem>,
-                        )}
-                    </List>
-                </Demo>  <Divider /></>
-            })}
-        </div>
+                            <Link to={`/editMember/${item._id}`} state={item}>
+                                <IconButton
+                                    edge="end"
+                                    aria-label="edit"
+                                    style={{ marginLeft: "2%" }}
+                                >
+                                    <EditIcon />
+                                </IconButton>
+                            </Link>
+                        </>
+                    </ListItem>
+                </List>
+            </Demo>
+
+            <Divider />
+        </React.Fragment>
+    );
+})}
+           
+         </div>
 
     </div>);
 }

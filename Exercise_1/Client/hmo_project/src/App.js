@@ -15,14 +15,17 @@ function App() {
     <BrowserRouter>
       <Menu/>
       {/* <Graphes/> */}
-      <Routes>
-      <Route path='*' element={<AllMembers/>}/>
-        <Route path='addMember' element={<AddMember/>}/>
-        <Route path='getMember/:id' element={<GetMember/>}/>
-        {/* <Route path='allMembers' element={<AllMembers/>}/> */}
-        <Route path='editMember/:id' element={<UpdateMember />} />
-        <Route path='coronaData' element={<Graphes />} />
-      </Routes>
+
+         <Routes>
+             <Route path="/" element={<AllMembers />} />
+             <Route path="allMembers" element={<AllMembers />} />
+             <Route path="addMember" element={<AddMember />} />
+             <Route path="getMember/:id" element={<GetMember />} />
+             <Route path="editMember/:id" element={<UpdateMember />} />
+             <Route path="coronaData" element={<Graphes />} />
+             <Route path="*" element={<AllMembers />} />
+         </Routes>
+
     </BrowserRouter>
 
   );
