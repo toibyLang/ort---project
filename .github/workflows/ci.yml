@@ -1,0 +1,74 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+permissions:
+  contents: read
+
+jobs:
+  integration-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Create Docker secret files
+        working-directory: Exercise_1/Server/hadasim-project
+        env:
+          MONGO_USERNAME: ${{ secrets.MONGO_USERNAME }}
+          MONGO_PASSWORD: ${{ secrets.MONGO_PASSWORD }}
+        run: |
+          mkdir -p secrets
+          printf '%s' "$MONGO_USERNAME" > secrets/mongo_username.txt
+          printf '%s' "$MONGO_PASSWORD" > secrets/mongo_password.txt
+
+      - name: Build server Docker image
+        run: docker build -t hadasim-server ./Exercise_1/Server/hadasim-project
+
+      - name: Build client Docker image
+        run: docker build -t hadasim-client ./Exercise_1/Client/hmo_project
+
+      - name: Start application
+        working-directory: Exercise_1/Server/hadasim-project
+        run: docker compose up -d
+
+      - name: Wait for application
+        run: |
+          for i in {1..30}; do
+            if curl -fsS http://localhost:3000/api/members > /dev/null; then
+              echo "Application is ready"
+              exit 0
+            fi
+
+            echo "Waiting for application..."
+            sleep 2
+          done
+
+          echo "Application did not become ready"
+          exit 1
+
+      - name: Run integration test
+        working-directory: Exercise_1/Server/hadasim-project
+        run: node tests/integration-test.js
+
+      - name: Show Docker logs on failure
+        if: failure()
+        working-directory: Exercise_1/Server/hadasim-project
+        run: docker compose logs
+
+      - name: Stop containers
+        if: always()
+        working-directory: Exercise_1/Server/hadasim-project
+        run: docker compose down
