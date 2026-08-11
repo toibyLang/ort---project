@@ -1,84 +1,120 @@
-import { useEffect, useState } from "react"
+import { useEffect, useState } from "react";
 import { LineChart } from '@mui/x-charts/LineChart';
-import { getAllMembersFromServer } from "../members/memberApi"
 import { PieChart } from '@mui/x-charts/PieChart';
+import { getAllMembersFromServer } from "../members/memberApi";
+
 const Graphes = () => {
-    let [mmbrArr, setMmmbrArr] = useState([])
+    const [mmbrArr, setMmmbrArr] = useState([]);
+    const [yAxisData, setYAxisData] = useState(Array(30).fill(0));
+
     useEffect(() => {
         const getAllMembers = async () => {
             try {
-                let res = await getAllMembersFromServer()
-                setMmmbrArr(res.data)
+                const res = await getAllMembersFromServer();
+                setMmmbrArr(res.data);
             }
             catch (err) {
-                console.log(err)
+                console.log(err);
             }
-        }
+        };
+
         getAllMembers();
+    }, []);
 
-    }, [])
-    const xAxisData = Array.from({ length: 30 }, (_, index) => index + 1);
-    const [yAxisData, setYAxisData] = useState(Array(30).fill(0))
-    let [vaccinated, setVaccinated] = useState(0);
-    let [unVaccinated, setunVaccinated] = useState(0);
+    useEffect(() => {
+        const updatedYAxisData = Array(30).fill(0);
+        const today = new Date();
 
-    const getDataOfLastMonth = () => {
-        let updatedYAxisData = Array.from(yAxisData);
         for (let i = 0; i < mmbrArr.length; i++) {
-            let start = 0;
-            let end = new Date().getDate() - 1;
-            if (mmbrArr[i].dateOfPositiveReply != null) {
-                if (mmbrArr[i].recoveryDate != null) {
-                    end = new Date(mmbrArr[i].recoveryDate).getDate() - 1;
+            const member = mmbrArr[i];
+
+            if (member.dateOfPositiveReply != null) {
+                let start = 0;
+                let end = today.getDate() - 1;
+
+                const positiveDate = new Date(member.dateOfPositiveReply);
+
+                if (
+                    positiveDate.getFullYear() === today.getFullYear() &&
+                    positiveDate.getMonth() === today.getMonth()
+                ) {
+                    start = positiveDate.getDate() - 1;
                 }
-                if (new Date(new Date(mmbrArr[i].dateOfPositiveReply).getFullYear() == new Date().getFullYear() && mmbrArr[i].dateOfPositiveReply).getMonth() == new Date().getMonth())
-                    start = new Date(mmbrArr[i].dateOfPositiveReply).getDate() - 1;
-                for (let i = start; i < end; i++) {
-                    updatedYAxisData[i] += 1;
+
+                if (member.recoveryDate != null) {
+                    const recoveryDate = new Date(member.recoveryDate);
+
+                    if (
+                        recoveryDate.getFullYear() === today.getFullYear() &&
+                        recoveryDate.getMonth() === today.getMonth()
+                    ) {
+                        end = recoveryDate.getDate() - 1;
+                    }
+                }
+
+                for (let day = start; day < end && day < 30; day++) {
+                    updatedYAxisData[day] += 1;
                 }
             }
         }
+
         setYAxisData(updatedYAxisData);
-    }
-    const cntOfvaccinated = () => {
-        for (let i = 0; i < mmbrArr.length; i++) {
-            console.log("length: " + mmbrArr[i].vaccinations.length)
-            if (mmbrArr[i].vaccinations.length != 0) {
-                setVaccinated(++vaccinated);
-            }
-            else {
-                setunVaccinated(++unVaccinated);
-            }
-        }
-    }
-    let [isFulled, setIsFulled] = useState(false)
-    if (!isFulled && mmbrArr.length != 0) {
-        getDataOfLastMonth();
-        cntOfvaccinated();
-        setIsFulled(true)
-    }
+    }, [mmbrArr]);
 
+    const vaccinated = mmbrArr.filter(
+        member =>
+            Array.isArray(member.vaccinations) &&
+            member.vaccinations.length > 0
+    ).length;
 
-    return (<div>
-        <h2 style={{direction:"rtl", marginRight:"40%"}}>נתוני תחלואה והתחסנות לחודש {new Date().getMonth()}</h2>
-        <div style={{ display: "flex", justifyContent: "space-between" }}>
+    const unVaccinated = mmbrArr.length - vaccinated;
 
-            <div style={{ flex: 1, marginTop: "8% ", marginLeft: "10%" }}>
-                <PieChart
-                    series={[{
-                        data: [
-                            { id: 0, value: vaccinated, label: 'מחוסנים' },
-                            { id: 1, value: unVaccinated, label: 'לא מחוסנים' }
-                        ],
-                    },]}
-                    width={400}
-                    height={200} />
-            </div>
-            <div style={{ flex: 1, marginTop: "4%", }}>
-                <LineChart style={{ width: "1200px", height: "1200px" }} xAxis={[{ data: xAxisData }]} series={[{ data: yAxisData, },]} width={500} height={300} />
+    const xAxisData = Array.from(
+        { length: 30 },
+        (_, index) => index + 1
+    );
+
+    return (
+        <div>
+            <h2 style={{ direction: "rtl", marginRight: "40%" }}>
+                נתוני תחלואה והתחסנות לחודש {new Date().getMonth() + 1}
+            </h2>
+
+            <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <div style={{ flex: 1, marginTop: "8%", marginLeft: "10%" }}>
+                    <PieChart
+                        series={[
+                            {
+                                data: [
+                                    {
+                                        id: 0,
+                                        value: vaccinated,
+                                        label: 'מחוסנים'
+                                    },
+                                    {
+                                        id: 1,
+                                        value: unVaccinated,
+                                        label: 'לא מחוסנים'
+                                    }
+                                ],
+                            },
+                        ]}
+                        width={400}
+                        height={200}
+                    />
+                </div>
+
+                <div style={{ flex: 1, marginTop: "4%" }}>
+                    <LineChart
+                        xAxis={[{ data: xAxisData }]}
+                        series={[{ data: yAxisData }]}
+                        width={500}
+                        height={300}
+                    />
+                </div>
             </div>
         </div>
-    </div>);
-}
+    );
+};
 
 export default Graphes;
